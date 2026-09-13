@@ -1,0 +1,38 @@
+plugins {
+    id("com.android.application")
+}
+
+android {
+    namespace = "com.example.screenshotmover"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "com.example.screenshotmover"
+        minSdk = 29
+        targetSdk = 34
+        versionCode = 2
+        versionName = "2.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+        debug {
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("com.google.android.material:material:1.12.0")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    // On-device script engine for plugins (BeanShell: Java-like syntax, interpreted —
+    // Janino was tried first but cannot work on Android: it needs JVM .class files
+    // for java.lang.* and the app interface, while Android ships DEX instead).
+    implementation("org.beanshell:bsh:2.0b5")
+}

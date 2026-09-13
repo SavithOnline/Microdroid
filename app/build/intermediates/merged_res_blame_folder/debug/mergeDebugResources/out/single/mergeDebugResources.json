@@ -1,0 +1,26 @@
+[
+    {
+        "merged": "com.example.screenshotmover.app-debug-32:/layout_activity_edit.xml.flat",
+        "source": "com.example.screenshotmover.app-main-34:/layout/activity_edit.xml"
+    },
+    {
+        "merged": "C:\\Users\\Lihini Dasanayaka\\.gradle\\daemon\\8.7\\com.example.screenshotmover.app-debug-32:\\menu_main_menu.xml.flat",
+        "source": "C:\\Users\\Lihini Dasanayaka\\.gradle\\daemon\\8.7\\com.example.screenshotmover.app-main-34:\\menu\\main_menu.xml"
+    },
+    {
+        "merged": "C:\\Users\\Lihini Dasanayaka\\.gradle\\daemon\\8.7\\com.example.screenshotmover.app-debug-32:\\layout_activity_edit.xml.flat",
+        "source": "C:\\Users\\Lihini Dasanayaka\\.gradle\\daemon\\8.7\\com.example.screenshotmover.app-main-34:\\layout\\activity_edit.xml"
+    },
+    {
+        "merged": "C:\\Users\\Lihini Dasanayaka\\.gradle\\daemon\\8.7\\com.example.screenshotmover.app-debug-32:\\layout_activity_log.xml.flat",
+        "source": "C:\\Users\\Lihini Dasanayaka\\.gradle\\daemon\\8.7\\com.example.screenshotmover.app-main-34:\\layout\\activity_log.xml"
+    },
+    {
+        "merged": "C:\\Users\\Lihini Dasanayaka\\.gradle\\daemon\\8.7\\com.example.screenshotmover.app-debug-32:\\layout_activity_main.xml.flat",
+        "source": "C:\\Users\\Lihini Dasanayaka\\.gradle\\daemon\\8.7\\com.example.screenshotmover.app-main-34:\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "C:\\Users\\Lihini Dasanayaka\\.gradle\\daemon\\8.7\\com.example.screenshotmover.app-debug-32:\\layout_item_automation.xml.flat",
+        "source": "C:\\Users\\Lihini Dasanayaka\\.gradle\\daemon\\8.7\\com.example.screenshotmover.app-main-34:\\layout\\item_automation.xml"
+    }
+]

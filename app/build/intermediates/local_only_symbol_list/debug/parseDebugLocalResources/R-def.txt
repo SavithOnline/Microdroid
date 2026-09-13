@@ -1,0 +1,36 @@
+R_DEF: Internal format may change without notice
+local
+color md_seed
+id btn_delete
+id btn_grant
+id btn_import
+id btn_interval
+id btn_more
+id btn_run
+id btn_save
+id et_source
+id fab_add
+id list
+id menu_about
+id menu_start_all
+id menu_stop_all
+id perm_banner
+id switch_enable
+id toolbar
+id toolbar_edit
+id toolbar_log
+id tv_badge
+id tv_desc
+id tv_error
+id tv_id
+id tv_last
+id tv_log
+id tv_name
+id tv_status
+layout activity_edit
+layout activity_log
+layout activity_main
+layout item_automation
+menu main_menu
+string app_name
+style Theme.Microdroid
