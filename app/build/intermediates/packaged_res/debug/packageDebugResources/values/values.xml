@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="md_seed">#0061A4</color>
-    <string name="app_name">ScreenshotMover</string>
-    <style name="Theme.Microdroid" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/md_seed</item>
-    </style>
-</resources>
