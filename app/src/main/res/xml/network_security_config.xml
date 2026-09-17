@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Public endpoints should use https; cleartext stays permitted so local LAN
+         models (Ollama/LM Studio over http://192.168.x.x) can be used. The app warns
+         when a base URL uses http://. -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

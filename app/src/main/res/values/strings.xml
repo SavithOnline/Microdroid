@@ -1,4 +1,175 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ScreenshotMover</string>
+    <string name="app_name">Microdroid</string>
+    <string name="accessibility_description">Lets Microdroid automations tap, swipe and type in other apps, and detect which app is open.</string>
+
+    <!-- Tabs -->
+    <string name="tab_scripts">Scripts</string>
+    <string name="tab_chat">Chat</string>
+    <string name="tab_logs">Logs</string>
+    <string name="tab_settings">Settings</string>
+
+    <!-- Scripts -->
+    <string name="all_files_banner">All-files access is off. Automations need it to move files.</string>
+    <string name="grant_access">Grant access</string>
+    <string name="add_automation">Add automation</string>
+    <string name="scripts_empty">No scripts yet.\nTap + to create one.</string>
+    <string name="run">Run</string>
+    <string name="enabled">Enabled</string>
+    <string name="more">More</string>
+    <string name="every_6h">Every 6h</string>
+    <string name="every_interval">Every %1$s</string>
+    <string name="schedule_every">every %1$s</string>
+    <string name="script_badge">SCRIPT</string>
+    <string name="builtin_badge">BUILT-IN</string>
+    <string name="status_on">On</string>
+    <string name="status_off">Off</string>
+    <string name="last_status">Last: %1$s</string>
+    <string name="status_line">%1$s · %2$s\n%3$s</string>
+
+    <!-- Edit / log -->
+    <string name="edit_automation_title">Edit automation</string>
+    <string name="import_java_file">Import .java file</string>
+    <string name="save_and_check">Save and check</string>
+    <string name="delete">Delete</string>
+    <string name="run_log_title">Run log</string>
+    <string name="log_title">Log: %1$s</string>
+    <string name="script_api_help">Define id(), name(), description() and run(ctx). Java-like, untyped variables. ctx offers: log, list, exists, isFile, isDirectory, length, mkdirs, copy, delete, move, scan, flashlight, blink, notify, vibrate, speak, launchApp, httpGet, tap/swipe, getData, putData. Optional on_event(ev, ctx) for triggers.</string>
+
+    <!-- Chat -->
+    <string name="chat_title">Chat</string>
+    <string name="chat_empty">Ask for an automation, e.g. &quot;move new screenshots to the SD card every morning&quot;.\n\nSet your provider and API key first: Settings tab \u2192 Model providers.</string>
+    <string name="chat_input_hint">Describe the automation…</string>
+    <string name="send">Send</string>
+
+    <!-- Logs -->
+    <string name="logs_title">Logs</string>
+    <string name="logs_empty">No activity yet.\nRuns, triggers and errors appear here.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="model_providers">Model providers</string>
+    <string name="manage_providers">Manage providers</string>
+    <string name="permissions_section">Permissions</string>
+    <string name="permissions_desc">All files, notifications, accessibility, location, SMS, battery and more.</string>
+    <string name="open">Open</string>
+    <string name="scheduler">Scheduler</string>
+    <string name="scheduler_on">Scheduler is on</string>
+    <string name="scheduler_off">Scheduler is off</string>
+    <string name="start_scheduler">Start scheduler</string>
+    <string name="stop_scheduler">Stop scheduler</string>
+    <string name="pc_control">PC control</string>
+    <string name="allow_adb_imports">Allow ADB imports</string>
+    <string name="allow_adb_imports_desc">Let scripts be pushed and imported over adb.</string>
+    <string name="show_adb_commands">Show adb commands</string>
+    <string name="microdroid_version">Microdroid %1$s</string>
+    <string name="adb_imports_toast">ADB plugin imports %1$s</string>
+    <string name="on">ON</string>
+    <string name="off">OFF</string>
+
+    <!-- Menus -->
+    <string name="menu_start_scheduler">Start scheduler</string>
+    <string name="menu_stop_scheduler">Stop scheduler</string>
+    <string name="menu_ai_chat">AI chat</string>
+    <string name="menu_pc_control">PC control</string>
+    <string name="chat_mode_ask">Mode: Ask</string>
+    <string name="chat_mode_bypass">Mode: Bypass</string>
+    <string name="chat_new">New chat</string>
+    <string name="chat_stop">Stop</string>
+    <string name="confirm_schedule_title">Change schedule for \"%1$s\"?</string>
+    <string name="schedule_enabled">Turns the script on.</string>
+    <string name="schedule_disabled">Turns the script off.</string>
+    <string name="schedule_interval">Run every %1$s.</string>
+
+    <!-- Permissions -->
+    <string name="permissions_title">Permissions</string>
+    <string name="perm_granted">Granted</string>
+    <string name="perm_not_granted">Not granted</string>
+    <string name="perm_open">Open</string>
+    <string name="perm_grant">Grant</string>
+    <string name="perm_all_files">All files access</string>
+    <string name="perm_all_files_sub">Move files across internal/SD storage</string>
+    <string name="perm_battery">Battery optimization</string>
+    <string name="perm_battery_sub">Keep triggers and schedules reliable</string>
+    <string name="perm_notif_access">Notification access</string>
+    <string name="perm_notif_access_sub">Notification triggers</string>
+    <string name="perm_accessibility">Accessibility</string>
+    <string name="perm_accessibility_sub">Tap/swipe/type and precise app-opened triggers</string>
+    <string name="perm_overlay">Display over other apps</string>
+    <string name="perm_overlay_sub">Launch apps / open URLs from background triggers</string>
+    <string name="perm_usage">Usage access</string>
+    <string name="perm_usage_sub">Fallback app opened/closed detection</string>
+    <string name="perm_location">Location</string>
+    <string name="perm_location_sub">Location and proximity triggers</string>
+    <string name="perm_bg_location">Background location</string>
+    <string name="perm_bg_location_sub">Location triggers while the app is in the background</string>
+    <string name="perm_sms">SMS</string>
+    <string name="perm_sms_sub">SMS received triggers, sendSms action</string>
+    <string name="perm_phone">Phone</string>
+    <string name="perm_phone_sub">Call triggers and the call action</string>
+    <string name="perm_calendar">Calendar</string>
+    <string name="perm_calendar_sub">Calendar event triggers</string>
+    <string name="perm_write_settings">Write settings</string>
+    <string name="perm_write_settings_sub">Brightness action</string>
+    <string name="perm_dnd">Do Not Disturb access</string>
+    <string name="perm_dnd_sub">DND action</string>
+    <string name="perm_exact_alarms">Exact alarms</string>
+    <string name="perm_exact_alarms_sub">Time triggers at the exact minute</string>
+    <string name="perm_notifications">Notifications</string>
+    <string name="perm_notifications_sub">notify action and trigger service notice</string>
+
+    <!-- Providers -->
+    <string name="add_provider">Add provider</string>
+    <string name="provider_active">ACTIVE</string>
+    <string name="api_key_status">API key: %1$s</string>
+    <string name="key_stored">stored</string>
+    <string name="key_not_set">not set</string>
+
+    <!-- Triggers -->
+    <string name="triggers_title">Triggers &amp; constraints</string>
+    <string name="when_header">WHEN (any of these fires the script)</string>
+    <string name="only_if_header">ONLY IF (all must match)</string>
+    <string name="add_trigger">Add trigger</string>
+    <string name="add_constraint">Add constraint</string>
+    <string name="triggers_note">Triggers with no script handler still run the script\'s run(ctx). Some triggers need special access - see menu \u2192 Permissions on the home screen.</string>
+    <string name="none">None</string>
+    <string name="trigger_stats">Fired %1$d time(s) · last %2$s</string>
+    <string name="trigger_stats_watching">Fired %1$d time(s) · last %2$s · watcher active</string>
+
+    <!-- Actions and dialogs -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="remove">Remove</string>
+    <string name="view_log">View log</string>
+    <string name="edit_source">Edit source</string>
+    <string name="run_every_title">Run every…</string>
+    <string name="run_started">%1$s started…</string>
+    <string name="scheduler_on_toast">Scheduler ON</string>
+    <string name="scheduler_off_toast">Scheduler OFF</string>
+    <string name="already_granted">Already granted</string>
+    <string name="remove_title">Remove %1$s?</string>
+    <string name="remove_message">Deletes its source, schedule and log. Built-ins cannot be removed.</string>
+    <string name="script_editor_hint">Script source</string>
+    <string name="save_script">Save script</string>
+    <string name="llm_key_note">Keys are stored encrypted with the Android Keystore and are only sent to the base URL above.</string>
+    <string name="provider_summary">%1$s · %2$s\n%3$s</string>
+    <string name="provider_endpoint">%1$s · %2$s</string>
+    <string name="editing_script">Editing: %1$s</string>
+    <string name="new_automation_hint">New automation (id comes from id() in code)</string>
+    <string name="source_empty">Source is empty.</string>
+    <string name="compiling">Compiling…</string>
+    <string name="saved_script">Saved %1$s</string>
+    <string name="compile_error">Compile error:\n%1$s</string>
+    <string name="delete_script_title">Delete %1$s?</string>
+    <string name="delete_script_message">Deletes its source, schedule and log.</string>
+    <string name="pc_control_help">RUN:\nadb shell am broadcast -a %1$s -n %2$s/.core.MicrodroidReceiver --es automation_id all\n\nIMPORT .java (needs \u201cAllow ADB imports\u201d ON):\n... ACTION_PLUGIN_IMPORT --es path /storage/emulated/0/Download/x.java\n\nAll commands need explicit -n on Android 8+.</string>
+    <string name="pc_control_help_full">RUN:\nadb shell am broadcast -a %1$s -n %2$s/.core.MicrodroidReceiver --es automation_id all\n\nTRIGGERS (base64 JSON):\n... ACTION_SET_TRIGGERS --es automation_id x --es triggers_b64 &lt;b64&gt;\n\nEVENT:\n... ACTION_EVENT --es event_type screen --es event_json_b64 &lt;b64&gt;\n\nIMPORT .java (needs \u201cAllow ADB imports\u201d ON):\n... ACTION_PLUGIN_IMPORT --es path /storage/emulated/0/Download/x.java\n\nAll commands need explicit -n on Android 8+.</string>
+
+    <string-array name="interval_labels">
+        <item>15 min</item>
+        <item>1 hour</item>
+        <item>6 hours</item>
+        <item>12 hours</item>
+        <item>24 hours</item>
+    </string-array>
 </resources>

@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.os.SystemClock;
 
@@ -27,11 +28,77 @@ public final class Store {
         return ctx.getApplicationContext().getSharedPreferences("microdroid", Context.MODE_PRIVATE);
     }
 
-    // Legacy prefs (v1 "mover") -> migrate interval for screenshots once.
+    // ---------- one-time upgrade work ----------
+
+    /**
+     * Upgrade migration (runs once, flag "migrated_v2"):
+     *  - cancels alarms scheduled by earlier builds (old PendingIntent identity)
+     *  - carries v1 "mover" prefs over to the screenshots keys
+     *  - reschedules enabled automations with the new alarm identity
+     * Safe to call from any entry point.
+     */
     public static void migrateOnce(Context ctx) {
         SharedPreferences neu = prefs(ctx);
-        if (neu.getBoolean("migrated_v1", false)) return;
-        neu.edit().putBoolean("migrated_v1", true).apply();
+        Context app = ctx.getApplicationContext();
+        if (!neu.getBoolean("migrated_v1", false)) {
+            neu.edit().putBoolean("migrated_v1", true).apply();
+        }
+        if (neu.getBoolean("migrated_v2", false)) return;
+        try {
+            for (String id : knownIds(app)) Scheduler.cancelLegacy(app, id);
+            migrateLegacyPrefs(app, neu);
+            Scheduler.rescheduleEnabled(app);
+            neu.edit().putBoolean("migrated_v2", true).apply();
+        } catch (Exception ignored) {
+            // flag not set -> retried on the next entry point
+        }
+    }
+
+    /** v1 "mover" prefs -> screenshots keys, without clobbering existing values. */
+    private static void migrateLegacyPrefs(Context app, SharedPreferences neu) {
+        SharedPreferences old = app.getSharedPreferences("mover", Context.MODE_PRIVATE);
+        SharedPreferences.Editor e = neu.edit();
+        if (!neu.contains("interval_screenshots") && old.contains("interval_min")) {
+            int iv = old.getInt("interval_min", DEFAULT_INTERVAL_MIN);
+            e.putInt("interval_screenshots", Math.max(iv, MIN_INTERVAL_MIN));
+        }
+        if (!neu.contains("last_screenshots")) {
+            String last = old.getString("last_status", old.getString("last", null));
+            if (last != null) e.putString("last_screenshots", last);
+        }
+        e.apply();
+    }
+
+    /** Current automations plus ids left behind in prefs (orphans included). */
+    private static List<String> knownIds(Context app) {
+        List<String> ids = new ArrayList<>();
+        for (Automation a : allAutomations(app)) ids.add(a.id());
+        for (String key : prefs(app).getAll().keySet()) {
+            if (key.startsWith("enabled_")) ids.add(key.substring("enabled_".length()));
+            else if (key.startsWith("interval_")) ids.add(key.substring("interval_".length()));
+        }
+        return ids;
+    }
+
+    /** Remove per-automation state after its script has been deleted. */
+    public static void forget(Context ctx, String id) {
+        prefs(ctx).edit()
+                .remove("enabled_" + id)
+                .remove("interval_" + id)
+                .remove("last_" + id)
+                .remove("triggers_" + id)
+                .remove("constraints_" + id)
+                .apply();
+    }
+
+    // ---------- adb plugin import gate ----------
+
+    public static boolean isAdbImportAllowed(Context ctx) {
+        return prefs(ctx).getBoolean("allow_adb_import", true);
+    }
+
+    public static void setAdbImportAllowed(Context ctx, boolean allow) {
+        prefs(ctx).edit().putBoolean("allow_adb_import", allow).apply();
     }
 
     public static boolean isEnabled(Context ctx, String id) {
@@ -41,6 +108,15 @@ public final class Store {
     public static void setEnabled(Context ctx, String id, boolean on) {
         prefs(ctx).edit().putBoolean("enabled_" + id, on).apply();
         if (!on) Scheduler.cancel(ctx, id);
+    }
+
+    /** Whether repeating alarms are currently armed (drives the Settings indicator). */
+    public static boolean isSchedulerOn(Context ctx) {
+        return prefs(ctx).getBoolean("scheduler_on", false);
+    }
+
+    public static void setSchedulerOn(Context ctx, boolean on) {
+        prefs(ctx).edit().putBoolean("scheduler_on", on).apply();
     }
 
     public static int getInterval(Context ctx, String id) {
@@ -145,9 +221,26 @@ public final class Store {
             Intent i = new Intent(ctx, MicrodroidReceiver.class);
             i.setAction(MicrodroidReceiver.ACTION_RUN);
             i.putExtra(MicrodroidReceiver.EXTRA_ID, automationId);
+            // per-id data URI keeps PendingIntents distinct (extras are ignored for equality)
+            i.setData(Uri.parse("microdroid://alarm/" + automationId));
             int flags = PendingIntent.FLAG_UPDATE_CURRENT;
             if (Build.VERSION.SDK_INT >= 23) flags |= PendingIntent.FLAG_IMMUTABLE;
-            return PendingIntent.getBroadcast(ctx, 2000 + Math.abs(automationId.hashCode() % 1000), i, flags);
+            return PendingIntent.getBroadcast(ctx, 0, i, flags);
+        }
+
+        /** Cancel an alarm created by earlier builds (request code derived from the id hash). */
+        static void cancelLegacy(Context ctx, String automationId) {
+            AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+            if (am == null) return;
+            Intent i = new Intent(ctx, MicrodroidReceiver.class);
+            i.setAction(MicrodroidReceiver.ACTION_RUN);
+            i.putExtra(MicrodroidReceiver.EXTRA_ID, automationId);
+            int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+            if (Build.VERSION.SDK_INT >= 23) flags |= PendingIntent.FLAG_IMMUTABLE;
+            PendingIntent pi = PendingIntent.getBroadcast(
+                    ctx, 2000 + Math.abs(automationId.hashCode() % 1000), i, flags);
+            am.cancel(pi);
+            pi.cancel();
         }
     }
 }

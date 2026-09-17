@@ -9,8 +9,8 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        app:title="Microdroid"
-        app:menu="@menu/main_menu" />
+        app:menu="@menu/main_menu"
+        app:title="@string/app_name" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/perm_banner"
@@ -28,7 +28,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="All-files access is off. Automations need it to move files."
+                android:text="@string/all_files_banner"
                 android:textAppearance="?attr/textAppearanceBodyMedium" />
 
             <com.google.android.material.button.MaterialButton
@@ -36,7 +36,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Grant access" />
+                android:text="@string/grant_access" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
@@ -50,7 +50,22 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:padding="8dp" />
+            android:paddingStart="8dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="88dp" />
+
+        <TextView
+            android:id="@+id/tv_empty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:padding="32dp"
+            android:text="@string/scripts_empty"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_add"
@@ -58,7 +73,9 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_margin="16dp"
-            android:contentDescription="Add automation"
-            app:srcCompat="@android:drawable/ic_input_add" />
+            android:contentDescription="@string/add_automation"
+            app:srcCompat="@drawable/ic_add" />
     </FrameLayout>
+
+    <include layout="@layout/view_bottom_nav" />
 </LinearLayout>

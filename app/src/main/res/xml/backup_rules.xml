@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- LLM keys are Keystore-encrypted; the keystore itself is never backed up,
+         so a restored ciphertext would be useless (and confusing). -->
+    <exclude domain="sharedpref" path="microdroid_llm.xml" />
+</full-backup-content>

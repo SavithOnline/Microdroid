@@ -22,12 +22,13 @@ public class LogActivity extends AppCompatActivity {
 
         String id = getIntent().getStringExtra(EXTRA_ID);
         if (id == null) id = "?";
-        setTitle("Log: " + id);
+        final String logId = id;
+        tb.setTitle(getString(R.string.log_title, logId));
 
         TextView tvLast = findViewById(R.id.tv_last);
         TextView tvLog = findViewById(R.id.tv_log);
 
-        tvLast.setText("Last: " + Store.getLast(this, id));
+        tvLast.setText(getString(R.string.last_status, Store.getLast(this, id)));
         String log = PluginManager.scriptIds(this).contains(id)
                 ? PluginManager.getLog(this, id)
                 : "(built-in: last status above)";

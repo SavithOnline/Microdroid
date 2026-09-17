@@ -63,19 +63,25 @@ public class AutomationAdapter extends RecyclerView.Adapter<AutomationAdapter.Ho
         android.content.Context ctx = h.itemView.getContext();
 
         h.name.setText(a.name());
-        h.badge.setText(item.isScript ? "SCRIPT" : "BUILT-IN");
+        h.badge.setText(ctx.getString(item.isScript ? R.string.script_badge : R.string.builtin_badge));
         h.desc.setText(a.description());
 
         boolean on = Store.isEnabled(ctx, a.id());
         int iv = Store.getInterval(ctx, a.id());
-        h.status.setText("enabled=" + on + " · every " + fmtInterval(iv)
-                + "\nlast: " + Store.getLast(ctx, a.id()));
+        String trig = com.example.screenshotmover.trigger.TriggerStore.summary(ctx, a.id());
+        String schedule = trig != null
+                ? trig
+                : ctx.getString(R.string.schedule_every, fmtInterval(iv));
+        h.status.setText(ctx.getString(R.string.status_line,
+                ctx.getString(on ? R.string.status_on : R.string.status_off),
+                schedule,
+                ctx.getString(R.string.last_status, Store.getLast(ctx, a.id()))));
 
         h.enable.setOnCheckedChangeListener(null);
         h.enable.setChecked(on);
         h.enable.setOnCheckedChangeListener((btn, checked) -> listener.onToggle(a.id(), checked));
 
-        h.interval.setText(fmtInterval(iv));
+        h.interval.setText(ctx.getString(R.string.every_interval, fmtInterval(iv)));
         h.interval.setOnClickListener(v -> listener.onInterval(a.id()));
         h.run.setOnClickListener(v -> listener.onRun(a.id()));
         h.more.setOnClickListener(v -> listener.onMore(a.id(), item.isScript));
@@ -86,7 +92,7 @@ public class AutomationAdapter extends RecyclerView.Adapter<AutomationAdapter.Ho
         return items == null ? 0 : items.size();
     }
 
-    static String fmtInterval(int min) {
+    public static String fmtInterval(int min) {
         if (min < 60) return min + "m";
         if (min % 60 == 0) return (min / 60) + "h";
         return (min / 60) + "h" + (min % 60) + "m";

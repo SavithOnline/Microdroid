@@ -1,5 +1,9 @@
 @echo off
-REM ScreenshotMover PC control - explicit broadcasts (required on Android 8+)
-REM Usage: pc_move_now.bat / pc_schedule_on.bat / pc_schedule_off.bat
-adb -s R9AMA0LCXEJ shell am broadcast -a com.example.screenshotmover.ACTION_MOVE_NOW -n com.example.screenshotmover/.MoveReceiver
+REM Microdroid PC control - run an automation on the connected phone.
+REM Usage: pc_move_now.bat [automation_id]   (default: all enabled)
+setlocal
+set DEVICE=R9AMA0LCXEJ
+set ID=%1
+if "%ID%"=="" set ID=all
+adb -s %DEVICE% shell am broadcast -a com.microdroid.ACTION_RUN -n com.example.screenshotmover/.core.MicrodroidReceiver --es automation_id %ID%
 pause

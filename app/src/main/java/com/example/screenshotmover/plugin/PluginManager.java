@@ -3,6 +3,9 @@ package com.example.screenshotmover.plugin;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.example.screenshotmover.automation.Automations;
+import com.example.screenshotmover.core.Store;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -143,6 +146,9 @@ public final class PluginManager {
         } catch (Exception e) {
             throw new Exception(trimErr(e));
         }
+        if (!hasMethod(i, "run")) {
+            throw new Exception("run(ctx) must be defined");
+        }
         Meta m = new Meta();
         try {
             Object id = i.eval("id()");
@@ -157,16 +163,42 @@ public final class PluginManager {
         if (!isValidId(m.id)) {
             throw new Exception("id() must match [a-z0-9_]{2,32}, got: " + m.id);
         }
+        if ("all".equalsIgnoreCase(m.id)) {
+            throw new Exception("id() 'all' is reserved for the run-all command");
+        }
+        if (Automations.byId(m.id) != null) {
+            throw new Exception("id() '" + m.id + "' is reserved by a built-in automation");
+        }
         return m;
+    }
+
+    private static boolean hasMethod(Interpreter i, String name) {
+        try {
+            for (bsh.BshMethod m : i.getNameSpace().getMethods()) {
+                if (name.equals(m.getName())) return true;
+            }
+        } catch (Exception ignored) {}
+        return false;
+    }
+
+    /** Save a new script or overwrite an existing one. */
+    public static String save(Context ctx, String source) throws Exception {
+        return save(ctx, source, null);
     }
 
     /**
      * Validate + save source. Writes Plugin.java + meta.json, returns the id.
-     * Throws with the script error message (shown in UI, nothing saved).
+     * When {@code expectedId} is set (editing) a changed id() is rejected instead of
+     * leaving an orphan copy behind. Throws with the script error message (nothing saved).
      */
-    public static String save(Context ctx, String source) throws Exception {
+    public static String save(Context ctx, String source, String expectedId) throws Exception {
         Meta m = inspect(source); // validate first
+        if (expectedId != null && !expectedId.equals(m.id)) {
+            throw new Exception("id() cannot change while editing (" + expectedId + " -> "
+                    + m.id + "). Delete this script and create a new one instead.");
+        }
         File dir = dirFor(ctx, m.id);
+        boolean isNew = !new File(dir, "Plugin.java").isFile();
         // noinspection ResultOfMethodCallIgnored
         dir.mkdirs();
         try (OutputStreamWriter w = new OutputStreamWriter(
@@ -183,11 +215,23 @@ public final class PluginManager {
             w.write(meta.toString());
         }
         prefs(ctx).edit().remove("fail_" + m.id).apply();
+        if (isNew) {
+            // a fresh script starts disabled, even if an old one with this id left prefs behind
+            Store.setEnabled(ctx, m.id, false);
+        }
         return m.id;
     }
 
     /** Execute run(ctx). A fresh interpreter per call (not thread-safe otherwise). */
     public static String execute(String source, PluginContext pluginCtx) throws Exception {
+        return execute(source, pluginCtx, null);
+    }
+
+    /**
+     * Execute on_event(ev, ctx) when an event is supplied and the script defines it,
+     * otherwise run(ctx). A fresh interpreter per call (not thread-safe otherwise).
+     */
+    public static String execute(String source, PluginContext pluginCtx, java.util.Map<String, String> event) throws Exception {
         Interpreter i = new Interpreter();
         try {
             i.eval(source);
@@ -195,9 +239,23 @@ public final class PluginManager {
             throw new Exception("Load error: " + trimErr(e));
         }
         i.set("ctx", pluginCtx);
+        boolean hasEvent = false;
+        try {
+            for (String name : i.getNameSpace().getMethodNames()) {
+                if ("on_event".equals(name)) {
+                    hasEvent = true;
+                    break;
+                }
+            }
+        } catch (Exception ignored) {}
         Object out;
         try {
-            out = i.eval("run(ctx)");
+            if (event != null && hasEvent) {
+                i.set("ev", event);
+                out = i.eval("on_event(ev, ctx)");
+            } else {
+                out = i.eval("run(ctx)");
+            }
         } catch (Exception e) {
             throw new Exception(trimErr(e));
         }
@@ -214,6 +272,7 @@ public final class PluginManager {
         try {
             deleteRecursive(dirFor(ctx, id));
             prefs(ctx).edit().remove("fail_" + id).remove("log_" + id).apply();
+            Store.forget(ctx, id);
             return true;
         } catch (Exception e) {
             return false;

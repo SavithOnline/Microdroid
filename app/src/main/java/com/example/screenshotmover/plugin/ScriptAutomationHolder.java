@@ -57,4 +57,31 @@ public class ScriptAutomationHolder implements Automation {
             return msg;
         }
     }
+
+    /** Run in response to a trigger event (on_event when defined, else run). */
+    public String runEvent(Context ctx, java.util.Map<String, String> event) {
+        Context a = ctx.getApplicationContext();
+        String source = PluginManager.readSource(a, pluginId);
+        if (source == null) return "Error: source missing for " + pluginId;
+        String firedBy = "fired by " + (event == null ? "event" : event.get("type"));
+        try {
+            String status = PluginManager.execute(source, new PluginContextImpl(a, pluginId), event);
+            PluginManager.noteSuccess(a, pluginId);
+            PluginManager.appendLog(a, pluginId, firedBy + ": " + status);
+            return status;
+        } catch (Throwable t) {
+            String msg = "Script error: " + t;
+            if (msg.length() > 300) msg = msg.substring(0, 300);
+            PluginManager.appendLog(a, pluginId, firedBy + ": " + msg);
+            PluginManager.noteFailure(a, pluginId);
+            int fails = PluginManager.failCount(a, pluginId);
+            if (fails >= PluginManager.MAX_FAILURES) {
+                Store.setEnabled(a, pluginId, false);
+                PluginManager.appendLog(a, pluginId,
+                        "Auto-disabled after " + fails + " consecutive failures.");
+                return msg + " (auto-disabled)";
+            }
+            return msg;
+        }
+    }
 }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_chat_mode"
+        android:title="@string/chat_mode_ask" />
+    <item
+        android:id="@+id/menu_chat_new"
+        android:title="@string/chat_new" />
+    <item
+        android:id="@+id/menu_chat_stop"
+        android:title="@string/chat_stop"
+        android:visible="false" />
+</menu>

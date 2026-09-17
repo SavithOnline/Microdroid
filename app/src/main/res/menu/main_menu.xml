@@ -2,11 +2,21 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/menu_start_all"
-        android:title="Start scheduler" />
+        android:title="@string/menu_start_scheduler" />
     <item
         android:id="@+id/menu_stop_all"
-        android:title="Stop scheduler" />
+        android:title="@string/menu_stop_scheduler" />
+    <item
+        android:id="@+id/menu_chat"
+        android:title="@string/menu_ai_chat" />
+    <item
+        android:id="@+id/menu_permissions"
+        android:title="@string/permissions_title" />
+    <item
+        android:id="@+id/menu_adb_import"
+        android:checkable="true"
+        android:title="@string/allow_adb_imports" />
     <item
         android:id="@+id/menu_about"
-        android:title="PC control" />
+        android:title="@string/menu_pc_control" />
 </menu>

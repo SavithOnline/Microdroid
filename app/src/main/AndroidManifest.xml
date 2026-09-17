@@ -1,31 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Needed on Android 10 and below; harmless on 11+ -->
+    <!-- Fallback on API 30-32 when All-files access is declined -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
-    <!-- Android 11+ All-files access so automations can move DCIM/Screenshots -> SD card -->
+    <!-- Android 11+ All-files access so automations can move files across internal/SD storage -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- AI chat: calls the user-configured LLM endpoint -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Script automations: ctx.flashlight/blink (normal permission, auto-granted) -->
+    <uses-permission android:name="android.permission.FLASHLIGHT" />
+
+    <!-- Trigger engine -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- Lets scripts launch apps / open URLs from background triggers (like MacroDroid) -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- Optional trigger permissions; each is requested from the Permission center -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
+
+    <uses-feature
+        android:name="android.hardware.camera.flash"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
+
+    <!-- API 30+ package visibility: launch any app, resolve TTS -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
 
     <application
-        android:label="Microdroid"
+        android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/Theme.Microdroid"
         android:allowBackup="true"
-        android:requestLegacyExternalStorage="true">
+        android:fullBackupContent="@xml/backup_rules"
+        android:networkSecurityConfig="@xml/network_security_config">
 
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".LogsActivity"
+            android:exported="false"
+            android:launchMode="singleTop" />
+
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:launchMode="singleTop" />
+
+        <activity
+            android:name=".ProvidersActivity"
+            android:exported="false" />
 
         <activity
             android:name=".EditActivity"
@@ -34,6 +94,20 @@
         <activity
             android:name=".LogActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".trigger.PermissionCenterActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".trigger.TriggersActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".chat.ChatActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize" />
 
         <!-- Generic Microdroid API: one receiver for all automations. -->
         <receiver
@@ -49,11 +123,79 @@
                 <action android:name="com.microdroid.ACTION_STOP_SCHEDULER" />
                 <action android:name="com.microdroid.ACTION_PLUGIN_IMPORT" />
                 <action android:name="com.microdroid.ACTION_PLUGIN_REMOVE" />
+                <action android:name="com.microdroid.ACTION_SET_TRIGGERS" />
+                <action android:name="com.microdroid.ACTION_SET_CONSTRAINTS" />
+                <action android:name="com.microdroid.ACTION_EVENT" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
+        <!-- Trigger engine: system broadcasts, time alarms, geofences, SMS/calls. -->
+        <receiver
+            android:name=".trigger.TriggerReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.microdroid.ACTION_TRIGGER_ALARM" />
+                <action android:name="com.microdroid.ACTION_INTENT_TRIGGER" />
+                <action android:name="com.microdroid.ACTION_WEBHOOK" />
+                <action android:name="com.microdroid.ACTION_GEOFENCE" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
+                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
+                <action android:name="android.intent.action.HEADSET_PLUG" />
+                <action android:name="android.intent.action.USER_PRESENT" />
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+                <action android:name="android.intent.action.PHONE_STATE" />
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <action android:name="android.intent.action.PACKAGE_REMOVED" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Resident watcher for screen/battery/network/sensors/app-open/calendar. -->
+        <service
+            android:name=".trigger.TriggerService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="automation trigger monitoring" />
+        </service>
+
+        <!-- Notification triggers; enabled by the user in Notification access settings. -->
+        <service
+            android:name=".trigger.NotificationTriggerService"
+            android:exported="false"
+            android:label="Microdroid notifications"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <!-- UI automation triggers/actions; enabled by the user in Accessibility settings. -->
+        <service
+            android:name=".trigger.MicrodroidAccessibilityService"
+            android:exported="true"
+            android:label="Microdroid automation"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
 
     </application>
 </manifest>

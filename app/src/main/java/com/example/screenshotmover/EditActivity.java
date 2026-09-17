@@ -68,12 +68,12 @@ public class EditActivity extends AppCompatActivity {
         String prefill = getIntent().getStringExtra(EXTRA_SOURCE);
 
         if (editingId != null) {
-            tvId.setText("Editing: " + editingId);
+            tvId.setText(getString(R.string.editing_script, editingId));
             String src = PluginManager.readSource(this, editingId);
             etSource.setText(src == null ? "" : src);
             btnDelete.setVisibility(View.VISIBLE);
         } else {
-            tvId.setText("New automation (id comes from id() in code)");
+            tvId.setText(R.string.new_automation_hint);
             etSource.setText(prefill == null ? PluginManager.TEMPLATE : prefill);
             btnDelete.setVisibility(View.GONE);
         }
@@ -93,21 +93,21 @@ public class EditActivity extends AppCompatActivity {
     private void save() {
         String source = etSource.getText().toString();
         if (source.trim().isEmpty()) {
-            showError("Source is empty.");
+            showError(getString(R.string.source_empty));
             return;
         }
-        toast("Compiling…");
+        toast(getString(R.string.compiling));
         new Thread(() -> {
             try {
-                String id = PluginManager.save(EditActivity.this, source);
+                String id = PluginManager.save(EditActivity.this, source, editingId);
                 runOnUiThread(() -> {
                     hideError();
-                    toast("Saved " + id);
+                    toast(getString(R.string.saved_script, id));
                     setResult(RESULT_OK);
                     finish();
                 });
             } catch (Exception e) {
-                String msg = "Compile error:\n" + e;
+                String msg = getString(R.string.compile_error, e);
                 runOnUiThread(() -> showError(msg));
             }
         }).start();
@@ -116,15 +116,15 @@ public class EditActivity extends AppCompatActivity {
     private void confirmDelete() {
         if (editingId == null) return;
         new MaterialAlertDialogBuilder(this)
-                .setTitle("Delete " + editingId + "?")
-                .setMessage("Deletes its source, schedule and log.")
-                .setPositiveButton("Delete", (d, w) -> {
+                .setTitle(getString(R.string.delete_script_title, editingId))
+                .setMessage(R.string.delete_script_message)
+                .setPositiveButton(R.string.delete, (d, w) -> {
                     com.example.screenshotmover.core.Store.setEnabled(this, editingId, false);
                     PluginManager.remove(this, editingId);
                     setResult(RESULT_OK);
                     finish();
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(R.string.cancel, null)
                 .show();
     }
 
