@@ -1,114 +1,95 @@
-# Microdroid (was ScreenshotMover)
+# Microdroid
 
-Android automation toolbox. Every automation is a **BeanShell script that runs on-device** —
-there are no built-in automations. UI, scheduler, the adb API and the optional **AI chat agent**
-pick scripts up automatically.
-Package `com.example.screenshotmover` (label **Microdroid**), debug signature, minSdk 30 / targetSdk 34.
+Microdroid is a personal automation toolbox for Android. It has no built-in automations: every
+automation is a small script that runs on the phone itself. Write one in the editor, import a
+`.java` file, or describe what you want in the Chat tab and let an AI agent write it for you.
 
-## Script contract
+It is built for the small, personal jobs a phone should be able to do on its own — filing
+downloads, reacting to notifications, keeping an eye on battery and Wi-Fi, nudging you at the
+right time — without handing your data to a service you don't control.
 
-A script defines four functions (Java-like, untyped, no imports/classes):
+## What an automation looks like
+
+A script declares an id, a name, a description and a `run(ctx)`. It is BeanShell — Java-like and
+interpreted on-device — so there is no build step and no project to set up:
 
 ```java
-id() { return "my_plugin"; }          // [a-z0-9_]{2,32}, becomes automation_id, "all" is reserved
-name() { return "My plugin"; }
-description() { return "What it does."; }
+id() { return "file_downloads"; }
+name() { return "File the downloads"; }
+description() { return "Moves new files out of Download."; }
 run(ctx) {
-  ctx.log("hello");
-  return "OK";                        // becomes last_<id> and the run log
+    ctx.log("hello");
+    return "OK";
 }
 ```
 
-`ctx` API: `log, list, exists, isFile, isDirectory, length, mkdirs, copy, delete, move, scan, getData, putData`.
-`move`/`copy` never overwrite (adds `_1`, `_2`…); `move` verifies the copy before deleting the source.
-Scripts are **not sandboxed** — BeanShell can reach the full Java API with the app's all-files
-permission, so only import scripts you trust. Failures: 3 strikes → auto-disabled.
+`ctx` covers what automations actually do: file operations, notifications, TTS, HTTP requests,
+launching apps, and UI automation (tap/swipe/type on screen when Accessibility is enabled).
+A script can also define `on_event(ev, ctx)` to react to trigger payloads directly.
 
-Storage: `files/plugins/<id>/Plugin.java` + `meta.json`. Add a script via the phone UI (FAB **+**)
-or by pushing a `.java` and importing it over adb.
+Scripts run with the app's permissions and are **not sandboxed** — only run code you trust. A
+script that fails three times in a row is disabled automatically, and everything it logs shows up
+in the Logs tab.
 
-## PC control (explicit `-n` required on Android 8+)
+## Running automations
 
-```
-adb -s R9AMA0LCXEJ shell am broadcast -a com.microdroid.ACTION_RUN -n com.example.screenshotmover/.core.MicrodroidReceiver --es automation_id my_plugin
-adb -s R9AMA0LCXEJ shell am broadcast -a com.microdroid.ACTION_RUN -n com.example.screenshotmover/.core.MicrodroidReceiver --es automation_id all
-adb -s R9AMA0LCXEJ shell am broadcast -a com.microdroid.ACTION_ENABLE -n com.example.screenshotmover/.core.MicrodroidReceiver --es automation_id my_plugin
-adb -s R9AMA0LCXEJ shell am broadcast -a com.microdroid.ACTION_DISABLE -n com.example.screenshotmover/.core.MicrodroidReceiver --es automation_id my_plugin
-adb -s R9AMA0LCXEJ shell am broadcast -a com.microdroid.ACTION_SET_INTERVAL -n com.example.screenshotmover/.core.MicrodroidReceiver --es automation_id my_plugin --ei interval_min 360
-adb -s R9AMA0LCXEJ shell am broadcast -a com.microdroid.ACTION_LIST -n com.example.screenshotmover/.core.MicrodroidReceiver
-adb -s R9AMA0LCXEJ shell am broadcast -a com.microdroid.ACTION_START_SCHEDULER -n com.example.screenshotmover/.core.MicrodroidReceiver
-adb -s R9AMA0LCXEJ shell am broadcast -a com.microdroid.ACTION_STOP_SCHEDULER -n com.example.screenshotmover/.core.MicrodroidReceiver
+- **On demand** — tap Run on any script.
+- **On a schedule** — give each script its own repeating interval, from 15 minutes to 24 hours.
+- **On an event** — triggers watch for a time of day, boot, battery level, Wi-Fi network,
+  notifications, SMS, calls, app installs, motion gestures, location, sunrise/sunset, a LAN
+  webhook, or a periodic HTTP check.
+- **Only when it makes sense** — constraints filter triggers: time window, battery, charging,
+  screen state, Wi-Fi SSID, network type, foreground app, headphones, DND, and location.
 
-# push a script then import it (import requires "Allow ADB imports", ON by default)
-adb -s R9AMA0LCXEJ push my_plugin.java /storage/emulated/0/Download/my_plugin.java
-adb -s R9AMA0LCXEJ shell am broadcast -a com.microdroid.ACTION_PLUGIN_IMPORT -n com.example.screenshotmover/.core.MicrodroidReceiver --es path /storage/emulated/0/Download/my_plugin.java
-adb -s R9AMA0LCXEJ shell am broadcast -a com.microdroid.ACTION_PLUGIN_REMOVE -n com.example.screenshotmover/.core.MicrodroidReceiver --es automation_id my_plugin
-```
+## The app
 
-`pc_move_now.bat [automation_id]` wraps ACTION_RUN (defaults to `all`).
+Four tabs and a couple of menus, deliberately small:
 
-## AI chat (bottom tab: Chat)
-
-Configure providers in the **Settings** tab → **Model providers**: built-ins (OpenAI-compatible, Anthropic,
-Gemini, OpenCode Go) plus your own entries (**Add provider** with a name, API format, base URL, model and key).
-Each row shows its base URL/model and key status; tap it to **Set as active**, **Edit** (base URL, model, API
-key, with Test) or **Delete** (custom ones). Keys are AES/GCM-encrypted per provider.
-
-| provider | notes |
+| Tab | What it's for |
 |---|---|
-| OpenAI-compatible | OpenAI, OpenRouter, Groq, DeepSeek, Mistral, Ollama/LM Studio; base URL editable |
-| Anthropic | native Messages API (streaming + tool use) |
-| Gemini | native generateContent (streaming + function calling) |
+| **Scripts** | Your automations: run, enable, schedule, edit, read logs, set triggers |
+| **Chat** | An AI agent that can write, edit, run and schedule scripts for you |
+| **Logs** | One feed of run results, trigger firings and errors |
+| **Settings** | Model providers, permissions, scheduler, ADB imports, version |
 
-- Keys are AES/GCM-encrypted with the Android Keystore and sent only to the configured base URL.
-  The key prefs are excluded from backup (Keystore is never backed up).
-- **Ask** mode (default): the agent proposes create/edit/delete/run; you see a diff and tap Apply.
-  **Bypass** mode: saves/edits/runs apply immediately — deletes and schedule changes still ask.
-- Agent tools: `list_scripts`, `read_script`, `save_script`, `delete_script`, `run_script`, `set_schedule`.
-  Save results are validated by BeanShell, so compile errors are returned to the model for repair.
-  Models without tool calling get a fallback: a fenced code block comes back with a **Save script** button.
-- The agent's system prompt includes the script contract, `ctx` API, phone paths and prompt-injection rules.
-- Security note: the app now has `INTERNET`, and BeanShell is **not** sandboxed — scripts can use the
-  network and could read the stored API key. Only import/ask for scripts you trust; use Ask mode by default.
+## An agent that writes automations
 
-## Triggers (per script: More → Triggers & constraints)
+The Chat tab talks to a model provider you configure — OpenAI-compatible endpoints, Anthropic,
+Gemini, or your own entry — and gives it tools to list, read, create, edit, delete, run and
+schedule your scripts, plus set their triggers and constraints.
 
-A script can run on events instead of only the interval timer. Optional `on_event(ev, ctx)` handles events;
-without it the normal `run(ctx)` runs. `ev` is a Map (`type`, `package`, `text`, `level`, `ssid`, ...).
+- **Ask mode** (default): every change is shown first — script diffs, run intent, schedule — and
+  you tap Apply.
+- **Bypass mode**: saves, edits and runs apply immediately; deletes and schedule changes still ask.
+- API keys are AES/GCM-encrypted with the Android Keystore and sent only to the base URL you set.
+- Models without tool calling still work: a fenced script block in the reply gets a **Save script**
+  button.
 
-- **No extra access**: time/day schedule (exact alarms), boot, power, headset, app installed/removed,
-  media button, broadcast intent, battery, screen on/off, network/Wi-Fi, motion (shake/flip/proximity),
-  device unlock, sunrise/sunset, LAN webhook + periodic HTTP checks.
-- **Needs access (grant in menu → Permissions)**: notifications (Notification access), SMS/calls,
-  app opened/closed (usage access or accessibility), calendar, location (fine + background).
-- **Constraints** (all must match): time window, battery, charging, screen, Wi-Fi SSID, network type,
-  foreground app, headphones, DND, near location.
-- **Actions** added to `ctx`: `notify`, `vibrate`, `speak`, `setVolume`, `setBrightness`, `dnd`,
-  `launchApp`, `openUrl`, `sendSms`, `call`, `httpGet/httpPost`, `setClipboard`, `toast`.
-- **UI automation** (`ctx.tap/swipe/typeText/pressBack/home/scroll/clickText/findText/currentApp`)
-  works when the Accessibility service is enabled.
-- Known limits: background activity launches (`launchApp`/`openUrl` inside triggers) can be blocked by
-  Android; the webhook listens on the LAN only (`:8765`); location triggers use proximity alerts.
+## From a PC
 
-## Status
+The app exposes an adb broadcast API to run scripts, change schedules, import or remove scripts,
+set triggers, and inject events — handy from a keyboard. Script imports over adb sit behind an
+**Allow ADB imports** toggle (on by default), and Settings shows the exact commands.
+
+## Permissions
+
+Microdroid asks for access only for the features you use: all-files access for file automations,
+notification access for notification triggers, accessibility for UI automation, plus optional
+SMS, phone, calendar, location, DND, brightness and exact-alarm access. The permission center
+lists each one with what it unlocks.
+
+## Building
+
+Requires JDK 17 and Android SDK 34; the app runs on Android 11 (API 30) and newer.
 
 ```
-adb -s R9AMA0LCXEJ shell run-as com.example.screenshotmover cat /data/data/com.example.screenshotmover/shared_prefs/microdroid.xml
+./gradlew :app:assembleDebug
 ```
 
-## Upgrade notes
+The APK lands in `app/build/outputs/apk/debug/app-debug.apk`.
 
-- Alarms are identified per plugin id; on first launch after upgrading, old-format alarms are
-  cancelled and enabled scripts rescheduled (flag `migrated_v2`).
-- Legacy v1 `mover` prefs (`interval_min`, `last_status`) are carried over to the `screenshots` keys once.
-- `ACTION_MOVE_NOW` / `.MoveReceiver` (pre-Microdroid) no longer exist; use ACTION_RUN.
-- After a reboot the OS may defer the BOOT_COMPLETED broadcast (cached-app broadcast deferral)
-  until the app is opened; enabled schedules are restored on delivery.
+## Technical reference
 
-## Verified 2026-09-16 (SM-A207F, Android 11 / API 30)
-
-- Build: `./gradlew :app:assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk`
-- Upgrade: legacy alarms cancelled/rescheduled once, `migrated_v2=true`, no duplicate alarms
-- Import/run/remove script over adb; move semantics (no-overwrite + verify-then-delete) on device
-- AI chat: settings dialog, connection test against a live endpoint (401 handled), key encrypted at
-  rest (`microdroid_llm.xml` shows IV:ciphertext only), no-key guard opens settings
+Implementation-level notes live in [TECHNICAL.md](TECHNICAL.md): the full script contract and
+`ctx` API, the adb action list, trigger and constraint schemas, storage layout, chat architecture,
+and the security model.
